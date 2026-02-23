@@ -228,7 +228,7 @@ function upgrade_docker_containers() {
     display_section "Initialize/Upgrade Docker Containers"
 
     wget -q \
-        "$GITHUB_RAW_URL/master/bin/upgrade_containers.sh" \
+        "$GITHUB_RAW_URL/$BRANCH/bin/upgrade_containers.sh" \
         -O "$UPGRADE_SCRIPT_PATH"
 
     sudo -u ${USER} \
@@ -377,7 +377,7 @@ function main() {
     )
 
     if [ "$VERSION" == "latest" ]; then
-        BRANCH="master"
+        BRANCH="fix/code-review-improvements"
     else
         set_custom_version
     fi
