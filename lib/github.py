@@ -1,22 +1,18 @@
-from __future__ import unicode_literals
-
 import json
 import logging
 import os
 import random
 import string
-from builtins import range, str
-
 from requests import exceptions
 from requests import get as requests_get
 from requests import post as requests_post
 
 from lib.device_helper import parse_cpu_info
 from lib.diagnostics import get_git_branch, get_git_hash, get_git_short_hash
-from lib.utils import connect_to_redis, is_balena_app, is_ci, is_docker
+from lib.utils import LazyRedis, is_balena_app, is_ci, is_docker
 from settings import settings
 
-r = connect_to_redis()
+r = LazyRedis()
 
 # Availability and HEAD commit of the remote branch to be checked
 # every 24 hours.
@@ -30,8 +26,8 @@ ERROR_BACKOFF_TTL = 60 * 5
 DOCKER_HUB_HASH_TTL = 10 * 60
 
 # Google Analytics data
-ANALYTICS_MEASURE_ID = 'G-S3VX8HTPK7'
-ANALYTICS_API_SECRET = 'G8NcBpRIS9qBsOj3ODK8gw'
+ANALYTICS_MEASURE_ID = os.getenv('ANALYTICS_MEASURE_ID', 'G-S3VX8HTPK7')
+ANALYTICS_API_SECRET = os.getenv('ANALYTICS_API_SECRET', 'G8NcBpRIS9qBsOj3ODK8gw')
 
 DEFAULT_REQUESTS_TIMEOUT = 1  # in seconds
 
@@ -144,38 +140,38 @@ def get_latest_docker_hub_hash(device_type):
     cached_docker_hub_hash = r.get('latest-docker-hub-hash')
 
     if cached_docker_hub_hash:
-        try:
-            response = requests_get(url, timeout=DEFAULT_REQUESTS_TIMEOUT)
-            response.raise_for_status()
-        except exceptions.RequestException as exc:
-            logging.debug('Failed to fetch latest Docker Hub tags: %s', exc)
-            return None
+        return cached_docker_hub_hash
 
-        data = response.json()
-        results = data['results']
+    try:
+        response = requests_get(url, timeout=DEFAULT_REQUESTS_TIMEOUT)
+        response.raise_for_status()
+    except exceptions.RequestException as exc:
+        logging.debug('Failed to fetch latest Docker Hub tags: %s', exc)
+        return None
 
-        reduced = [
-            result['name'].split('-')[0]
-            for result in results
-            if not result['name'].startswith('latest-')
-            and result['name'].endswith(f'-{device_type}')
-        ]
+    data = response.json()
+    results = data['results']
 
-        if len(reduced) == 0:
-            logging.warning(
-                'No commit hash found for device type: %s', device_type
-            )
-            return None
+    reduced = [
+        result['name'].split('-')[0]
+        for result in results
+        if not result['name'].startswith('latest-')
+        and result['name'].endswith(f'-{device_type}')
+    ]
 
-        docker_hub_hash = reduced[0]
-        r.set('latest-docker-hub-hash', docker_hub_hash)
-        r.expire('latest-docker-hub-hash', DOCKER_HUB_HASH_TTL)
+    if len(reduced) == 0:
+        logging.warning(
+            'No commit hash found for device type: %s', device_type
+        )
+        return None
 
-        # Results are sorted by date in descending order,
-        # so we can just return the first one.
-        return reduced[0]
+    docker_hub_hash = reduced[0]
+    r.set('latest-docker-hub-hash', docker_hub_hash)
+    r.expire('latest-docker-hub-hash', DOCKER_HUB_HASH_TTL)
 
-    return cached_docker_hub_hash
+    # Results are sorted by date in descending order,
+    # so we can just return the first one.
+    return docker_hub_hash
 
 
 def is_up_to_date():

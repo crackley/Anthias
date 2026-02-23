@@ -1,3 +1,4 @@
+import hashlib
 import ipaddress
 
 from django.contrib import messages
@@ -7,7 +8,6 @@ from django.views.decorators.http import require_http_methods
 
 from lib.auth import authorized
 from lib.utils import (
-    connect_to_redis,
     get_node_ip,
 )
 from settings import settings
@@ -15,8 +15,6 @@ from settings import settings
 from .helpers import (
     template,
 )
-
-r = connect_to_redis()
 
 
 @authorized
@@ -31,9 +29,11 @@ def login(request):
         password = request.POST.get('password')
 
         if settings.auth._check(username, password):
-            # Store credentials in session
+            # Store credentials in session (password is hashed for security)
             request.session['auth_username'] = username
-            request.session['auth_password'] = password
+            request.session['auth_password'] = hashlib.sha256(
+                password.encode('utf-8')
+            ).hexdigest()
 
             return redirect(reverse('anthias_app:react'))
         else:

@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 import logging
 import sys
 import tarfile
@@ -50,6 +48,6 @@ def recover(file_path):
             if directory not in tar.getnames():
                 raise Exception('Archive is wrong.')
 
-        tar.extractall(path=getenv('HOME'))
+        tar.extractall(path=getenv('HOME'), filter='data')
 
     remove(file_path)

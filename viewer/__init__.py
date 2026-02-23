@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
-
 import json
 import logging
 import sys
-from builtins import range
 from os import getenv, path
 from signal import SIGALRM, signal
 from time import sleep
@@ -13,7 +10,6 @@ from time import sleep
 import django
 import pydbus
 import sh
-from future import standard_library
 from jinja2 import Template
 from tenacity import Retrying, stop_after_attempt, wait_fixed
 
@@ -43,7 +39,7 @@ try:
     # Place imports that uses Django in this block.
 
     from lib.utils import (
-        connect_to_redis,
+        LazyRedis,
         get_balena_device_info,
         get_node_ip,
         is_balena_app,
@@ -52,14 +48,11 @@ try:
     )
     from viewer.scheduling import Scheduler
     from viewer.zmq import ZMQ_HOST_PUB_URL, ZmqSubscriber
-except Exception:
-    pass
-
-standard_library.install_aliases()
-
+except Exception as e:
+    logging.warning('Failed to initialize Django imports: %s', e)
 
 __author__ = 'Screenly, Inc'
-__copyright__ = 'Copyright 2012-2024, Screenly, Inc'
+__copyright__ = 'Copyright 2012-2026, Screenly, Inc'
 __license__ = 'Dual License: GPLv2 and Commercial License'
 
 
@@ -67,7 +60,7 @@ current_browser_url = None
 browser = None
 loop_is_stopped = False
 browser_bus = None
-r = connect_to_redis()
+r = LazyRedis()
 
 HOME = None
 
@@ -166,7 +159,7 @@ def view_webpage(uri):
 
     if browser is None or not browser.process.alive:
         load_browser()
-    if current_browser_url is not uri:
+    if current_browser_url != uri:
         browser_bus.loadPage(uri)
         current_browser_url = uri
     logging.info('Current url is {0}'.format(current_browser_url))
@@ -177,7 +170,7 @@ def view_image(uri):
 
     if browser is None or not browser.process.alive:
         load_browser()
-    if current_browser_url is not uri:
+    if current_browser_url != uri:
         browser_bus.loadImage(uri)
         current_browser_url = uri
     logging.info('Current url is {0}'.format(current_browser_url))
@@ -253,7 +246,7 @@ def asset_loop(scheduler):
             view_image(uri)
         elif 'web' in mime:
             view_webpage(uri)
-        elif 'video' or 'streaming' in mime:
+        elif 'video' in mime or 'streaming' in mime:
             view_video(uri, asset['duration'])
         else:
             logging.error('Unknown MimeType %s', mime)

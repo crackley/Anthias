@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from os import getenv, path
 
@@ -13,17 +14,17 @@ try:
 
     from lib import diagnostics
     from lib.utils import (
-        connect_to_redis,
+        LazyRedis,
         is_balena_app,
         reboot_via_balena_supervisor,
         shutdown_via_balena_supervisor,
     )
-except Exception:
-    pass
+except Exception as e:
+    logging.warning('Failed to initialize Django imports: %s', e)
 
 
 __author__ = 'Screenly, Inc'
-__copyright__ = 'Copyright 2012-2024, Screenly, Inc'
+__copyright__ = 'Copyright 2012-2026, Screenly, Inc'
 __license__ = 'Dual License: GPLv2 and Commercial License'
 
 
@@ -33,7 +34,7 @@ CELERY_RESULT_BACKEND = getenv(
 CELERY_BROKER_URL = getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 CELERY_TASK_RESULT_EXPIRES = timedelta(hours=6)
 
-r = connect_to_redis()
+r = LazyRedis()
 celery = Celery(
     'Anthias Celery Worker',
     backend=CELERY_RESULT_BACKEND,
