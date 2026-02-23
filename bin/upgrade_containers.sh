@@ -6,8 +6,22 @@
 # Export various environment variables
 export MY_IP=$(ip -4 route get 8.8.8.8 | awk {'print $7'} | tr -d '\n')
 TOTAL_MEMORY_KB=$(grep MemTotal /proc/meminfo | awk {'print $2'})
-export VIEWER_MEMORY_LIMIT_KB=$(echo "$TOTAL_MEMORY_KB" \* 0.8 | bc)
-export SHM_SIZE_KB="$(echo "$TOTAL_MEMORY_KB" \* 0.3 | bc | cut -d'.' -f1)"
+
+# Scale memory allocations based on available RAM
+if [ "$TOTAL_MEMORY_KB" -lt 1500000 ]; then
+    # 1GB RAM: constrain all containers to prevent OOM
+    export VIEWER_MEMORY_LIMIT_KB=$(echo "$TOTAL_MEMORY_KB * 0.40" | bc | cut -d'.' -f1)
+    export SHM_SIZE_KB=$(echo "$TOTAL_MEMORY_KB * 0.15" | bc | cut -d'.' -f1)
+    export SERVER_MEMORY_LIMIT_KB=$(echo "$TOTAL_MEMORY_KB * 0.15" | bc | cut -d'.' -f1)
+    export CELERY_MEMORY_LIMIT_KB=$(echo "$TOTAL_MEMORY_KB * 0.10" | bc | cut -d'.' -f1)
+    export CELERY_CONCURRENCY=1
+else
+    export VIEWER_MEMORY_LIMIT_KB=$(echo "$TOTAL_MEMORY_KB * 0.8" | bc | cut -d'.' -f1)
+    export SHM_SIZE_KB=$(echo "$TOTAL_MEMORY_KB * 0.3" | bc | cut -d'.' -f1)
+    export SERVER_MEMORY_LIMIT_KB=262144
+    export CELERY_MEMORY_LIMIT_KB=262144
+    export CELERY_CONCURRENCY=2
+fi
 GIT_BRANCH="${GIT_BRANCH:-master}"
 export GITHUB_REPO="${GITHUB_REPO:-Screenly/Anthias}"
 export GIT_BRANCH

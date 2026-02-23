@@ -25,6 +25,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.server
+    mem_limit: ${SERVER_MEMORY_LIMIT_KB:-262144}k
     environment:
       - MY_IP=${MY_IP}
       - MAC_ADDRESS=${MAC_ADDRESS}
@@ -99,6 +100,13 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.celery
+    mem_limit: ${CELERY_MEMORY_LIMIT_KB:-262144}k
+    command: >
+      celery -A celery_tasks.celery worker
+      -B -n worker@anthias
+      --concurrency=${CELERY_CONCURRENCY:-2}
+      --loglevel=info
+      --schedule /tmp/celerybeat-schedule
     depends_on:
       - anthias-server
       - redis
