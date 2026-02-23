@@ -9,6 +9,8 @@ TOTAL_MEMORY_KB=$(grep MemTotal /proc/meminfo | awk {'print $2'})
 export VIEWER_MEMORY_LIMIT_KB=$(echo "$TOTAL_MEMORY_KB" \* 0.8 | bc)
 export SHM_SIZE_KB="$(echo "$TOTAL_MEMORY_KB" \* 0.3 | bc | cut -d'.' -f1)"
 GIT_BRANCH="${GIT_BRANCH:-master}"
+export GITHUB_REPO="${GITHUB_REPO:-Screenly/Anthias}"
+export GIT_BRANCH
 
 MODE="${MODE:-pull}"
 if [[ ! "$MODE" =~ ^(pull|build)$ ]]; then

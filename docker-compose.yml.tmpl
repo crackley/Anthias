@@ -33,6 +33,8 @@ services:
       - LISTEN=0.0.0.0
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - GITHUB_REPO=${GITHUB_REPO:-Screenly/Anthias}
+      - GIT_BRANCH=${GIT_BRANCH:-master}
     devices:
       - "/dev/vchiq:/dev/vchiq"
     restart: always

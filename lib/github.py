@@ -26,6 +26,8 @@ ERROR_BACKOFF_TTL = 60 * 5
 DOCKER_HUB_HASH_TTL = 10 * 60
 
 # Google Analytics data
+GITHUB_REPO = os.getenv('GITHUB_REPO', 'Screenly/Anthias')
+
 ANALYTICS_MEASURE_ID = os.getenv('ANALYTICS_MEASURE_ID', 'G-S3VX8HTPK7')
 ANALYTICS_API_SECRET = os.getenv('ANALYTICS_API_SECRET', 'G8NcBpRIS9qBsOj3ODK8gw')
 
@@ -65,7 +67,7 @@ def remote_branch_available(branch):
 
     try:
         resp = requests_get(
-            'https://api.github.com/repos/screenly/anthias/branches',
+            f'https://api.github.com/repos/{GITHUB_REPO}/branches',
             headers={
                 'Accept': 'application/vnd.github.loki-preview+json',
             },
@@ -111,7 +113,7 @@ def fetch_remote_hash():
             return None, False
         try:
             resp = requests_get(
-                f'https://api.github.com/repos/screenly/anthias/git/refs/heads/{branch}',  # noqa: E501
+                f'https://api.github.com/repos/{GITHUB_REPO}/git/refs/heads/{branch}',  # noqa: E501
                 timeout=DEFAULT_REQUESTS_TIMEOUT,
             )
             resp.raise_for_status()
