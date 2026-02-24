@@ -67,7 +67,7 @@ RUN npm install
 
 COPY ./static/sass/*.scss /app/static/sass/
 COPY ./static/src/ /app/static/src/
-ENV NODE_OPTIONS="--max-old-space-size=512"
+ENV NODE_OPTIONS="--max-old-space-size=1024"
 RUN npm run build
 
 FROM ${BASE_IMAGE}:bookworm
@@ -129,9 +129,9 @@ EOF
 echo "Dockerfile.server generated."
 
 # Ensure swap is available for the build (webpack needs ~500MB heap)
-if [ ! -f /swapfile ] && [ "$(free -m | awk '/Swap:/{print $2}')" -lt 512 ]; then
-    echo "No swap detected. Creating 1GB swap file for build..."
-    sudo fallocate -l 1G /swapfile
+if [ ! -f /swapfile ] && [ "$(free -m | awk '/Swap:/{print $2}')" -lt 1024 ]; then
+    echo "No swap detected. Creating 2GB swap file for build..."
+    sudo fallocate -l 2G /swapfile
     sudo chmod 600 /swapfile
     sudo mkswap /swapfile
     sudo swapon /swapfile
