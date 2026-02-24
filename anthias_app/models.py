@@ -24,6 +24,7 @@ class Asset(models.Model):
     nocache = models.BooleanField(default=False)
     play_order = models.IntegerField(default=0)
     skip_asset_check = models.BooleanField(default=False)
+    days_of_week = models.TextField(default='0,1,2,3,4,5,6')
 
     class Meta:
         db_table = 'assets'
@@ -34,6 +35,14 @@ class Asset(models.Model):
     def is_active(self):
         if self.is_enabled and self.start_date and self.end_date:
             current_time = timezone.now()
-            return self.start_date < current_time < self.end_date
+            if not (self.start_date < current_time < self.end_date):
+                return False
+            if self.days_of_week:
+                allowed_days = [
+                    int(d) for d in self.days_of_week.split(',') if d.strip()
+                ]
+                if current_time.weekday() not in allowed_days:
+                    return False
+            return True
 
         return False

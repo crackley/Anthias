@@ -69,6 +69,7 @@ export const useFileUpload = () => {
         play_order: 0,
         duration: result.duration,
         skip_asset_check: formData.skipAssetCheck ? 1 : 0,
+        days_of_week: '0,1,2,3,4,5,6',
         ...result.dates,
       }
 

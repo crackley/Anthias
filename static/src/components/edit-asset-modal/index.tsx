@@ -12,6 +12,7 @@ import { DateFields } from '@/components/edit-asset-modal/date-fields'
 import { DurationField } from '@/components/edit-asset-modal/duration-field'
 import { ModalFooter } from '@/components/edit-asset-modal/modal-footer'
 import { AdvancedFields } from '@/components/edit-asset-modal/advanced'
+import { DaysOfWeekField } from '@/components/edit-asset-modal/days-of-week-field'
 
 interface EditAssetModalProps {
   isOpen: boolean
@@ -35,6 +36,7 @@ export const EditAssetModal = ({
     mimetype: 'webpage',
     nocache: false,
     skip_asset_check: false,
+    days_of_week: '0,1,2,3,4,5,6',
   })
   const [loopTimes, setLoopTimes] = useState('manual')
   const [startDateDate, setStartDateDate] = useState('')
@@ -71,6 +73,7 @@ export const EditAssetModal = ({
         mimetype: asset.mimetype || 'webpage',
         nocache: asset.nocache || false,
         skip_asset_check: asset.skip_asset_check || false,
+        days_of_week: asset.days_of_week || '0,1,2,3,4,5,6',
       })
 
       setStartDateDate(formatDatePart(startDate))
@@ -224,6 +227,10 @@ export const EditAssetModal = ({
                 <DurationField
                   formData={formData}
                   handleInputChange={handleInputChange}
+                />
+                <DaysOfWeekField
+                  formData={formData}
+                  setFormData={setFormData}
                 />
                 <AdvancedFields
                   formData={formData}
