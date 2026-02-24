@@ -73,6 +73,9 @@ services:
       - /home/${USER}/.screenly:/data/.screenly
       - /home/${USER}/screenly_assets:/data/screenly_assets
       - /home/${USER}/screenly/viewer:/usr/src/app/viewer:ro
+      - /home/${USER}/screenly/lib:/usr/src/app/lib:ro
+      - /home/${USER}/screenly/settings.py:/usr/src/app/settings.py:ro
+      - /home/${USER}/screenly/anthias_app:/usr/src/app/anthias_app:ro
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     labels:
