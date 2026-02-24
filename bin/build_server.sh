@@ -67,6 +67,7 @@ RUN npm install
 
 COPY ./static/sass/*.scss /app/static/sass/
 COPY ./static/src/ /app/static/src/
+ENV NODE_OPTIONS="--max-old-space-size=512"
 RUN npm run build
 
 FROM ${BASE_IMAGE}:bookworm
@@ -127,8 +128,26 @@ EOF
 
 echo "Dockerfile.server generated."
 
+# Ensure swap is available for the build (webpack needs ~500MB heap)
+if [ ! -f /swapfile ] && [ "$(free -m | awk '/Swap:/{print $2}')" -lt 512 ]; then
+    echo "No swap detected. Creating 1GB swap file for build..."
+    sudo fallocate -l 1G /swapfile
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+    sudo swapon /swapfile
+    CREATED_SWAP=1
+    echo "Swap enabled."
+fi
+
+# Stop viewer to free memory for the build
+if sudo docker ps --format '{{.Names}}' | grep -q anthias-viewer; then
+    echo "Stopping viewer to free memory for build..."
+    sudo docker stop screenly-anthias-viewer-1 || true
+    STOPPED_VIEWER=1
+fi
+
 # Build the image
-echo "Building Docker image (this may take 10-20 minutes on a Pi)..."
+echo "Building Docker image (this may take 20-40 minutes on a Pi)..."
 sudo docker build \
     -f docker/Dockerfile.server \
     -t "${IMAGE_NAME}" \
@@ -144,3 +163,15 @@ echo "  sudo docker compose -f /home/\${USER}/screenly/docker-compose.yml up -d 
 echo ""
 echo "Then restart nginx to reconnect:"
 echo "  sudo docker restart screenly-anthias-nginx-1"
+
+if [ "${STOPPED_VIEWER}" = "1" ]; then
+    echo ""
+    echo "The viewer was stopped for the build. Restart it with:"
+    echo "  sudo docker start screenly-anthias-viewer-1"
+fi
+
+if [ "${CREATED_SWAP}" = "1" ]; then
+    echo ""
+    echo "A swap file was created at /swapfile."
+    echo "To make it permanent: echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab"
+fi
