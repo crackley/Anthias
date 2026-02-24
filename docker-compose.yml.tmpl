@@ -72,6 +72,7 @@ services:
       - /home/${USER}/.asoundrc:/data/.asoundrc
       - /home/${USER}/.screenly:/data/.screenly
       - /home/${USER}/screenly_assets:/data/screenly_assets
+      - /home/${USER}/screenly/viewer:/usr/src/app/viewer:ro
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     labels:
