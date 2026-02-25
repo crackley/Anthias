@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-BRANCH="fix/code-review-improvements"
+BRANCH="master"
 ANSIBLE_PLAYBOOK_ARGS=()
 REPOSITORY="https://github.com/crackley/Anthias.git"
 ANTHIAS_REPO_DIR="/home/${USER}/screenly"
@@ -377,7 +377,7 @@ function main() {
     )
 
     if [ "$VERSION" == "latest" ]; then
-        BRANCH="fix/code-review-improvements"
+        BRANCH="master"
     else
         set_custom_version
     fi
