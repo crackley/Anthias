@@ -60,6 +60,7 @@ class AssetSerializer(ModelSerializer):
             'skip_asset_check',
             'is_active',
             'is_processing',
+            'days_of_week',
         ]
 
 
@@ -73,6 +74,7 @@ class UpdateAssetSerializer(Serializer):
     nocache = IntegerField(min_value=0, max_value=1, required=False)
     play_order = IntegerField(required=False)
     skip_asset_check = IntegerField(min_value=0, max_value=1, required=False)
+    days_of_week = CharField(required=False)
 
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name', instance.name)
@@ -92,6 +94,9 @@ class UpdateAssetSerializer(Serializer):
         )
         instance.skip_asset_check = validated_data.get(
             'skip_asset_check', instance.skip_asset_check
+        )
+        instance.days_of_week = validated_data.get(
+            'days_of_week', instance.days_of_week
         )
 
         if 'video' not in instance.mimetype:

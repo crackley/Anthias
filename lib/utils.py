@@ -1,14 +1,10 @@
-from __future__ import absolute_import, unicode_literals
-
 import json
 import logging
 import os
 import random
 import re
 import string
-from builtins import range, str
 from datetime import datetime, timedelta
-from distutils.util import strtobool
 from os import getenv, path, utime
 from platform import machine
 from subprocess import call, check_output
@@ -21,7 +17,6 @@ import pytz
 import redis
 import requests
 import sh
-from future import standard_library
 from tenacity import (
     RetryError,
     Retrying,
@@ -31,9 +26,6 @@ from tenacity import (
 
 from anthias_app.models import Asset
 from settings import ZmqPublisher, settings
-
-standard_library.install_aliases()
-
 
 arch = machine()
 
@@ -47,7 +39,13 @@ except ImportError:
 
 
 def string_to_bool(string):
-    return bool(strtobool(str(string)))
+    value = str(string).strip().lower()
+    if value in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif value in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError(f'Invalid truth value {string!r}')
 
 
 def touch(path):
@@ -476,6 +474,21 @@ def generate_perfect_paper_password(pw_length=10, has_symbols=True):
 
 def connect_to_redis():
     return redis.Redis(host='redis', decode_responses=True, port=6379, db=0)
+
+
+class LazyRedis:
+    """Lazy Redis connection that only connects when first accessed."""
+
+    def __init__(self):
+        self._connection = None
+
+    def _get_connection(self):
+        if self._connection is None:
+            self._connection = connect_to_redis()
+        return self._connection
+
+    def __getattr__(self, name):
+        return getattr(self._get_connection(), name)
 
 
 def is_docker():

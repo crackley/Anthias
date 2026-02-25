@@ -114,6 +114,7 @@ export const ActiveAssetsTable = ({ onEditAsset }: ActiveAssetsTableProps) => {
                   mimetype={asset.mimetype}
                   nocache={asset.nocache}
                   skipAssetCheck={asset.skip_asset_check}
+                  daysOfWeek={asset.days_of_week || '0,1,2,3,4,5,6'}
                   onEditAsset={onEditAsset}
                   showDragHandle={true}
                 />

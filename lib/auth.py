@@ -1,21 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import unicode_literals
-
 import hashlib
 import os.path
 from abc import ABCMeta, abstractmethod
 from base64 import b64decode
-from builtins import object, str
 from functools import wraps
-
-from future.utils import with_metaclass
 
 LINUX_USER = os.getenv('USER', 'pi')
 
 
-class Auth(with_metaclass(ABCMeta, object)):
+class Auth(metaclass=ABCMeta):
     @abstractmethod
     def authenticate(self):
         """
@@ -133,10 +128,14 @@ class BasicAuth(Auth):
                         return self._check(username, password)
 
         # Then check session for form-based login
+        # Session stores the already-hashed password, so compare directly.
         username = request.session.get('auth_username')
-        password = request.session.get('auth_password')
-        if username and password:
-            return self._check(username, password)
+        hashed_password = request.session.get('auth_password')
+        if username and hashed_password:
+            return (
+                self.settings['user'] == username
+                and self.settings['password'] == hashed_password
+            )
 
         return False
 
@@ -151,11 +150,26 @@ class BasicAuth(Auth):
         return redirect(reverse('anthias_app:login'))
 
     def update_settings(self, request, current_pass_correct):
-        new_user = request.POST.get('user', '')
-        new_pass = request.POST.get('password', '').encode('utf-8')
-        new_pass2 = request.POST.get('password2', '').encode('utf-8')
-        new_pass = hashlib.sha256(new_pass).hexdigest() if new_pass else None
-        new_pass2 = hashlib.sha256(new_pass2).hexdigest() if new_pass else None
+        self.update_credentials(
+            new_user=request.POST.get('user', ''),
+            new_pass_raw=request.POST.get('password', ''),
+            new_pass2_raw=request.POST.get('password2', ''),
+            current_pass_correct=current_pass_correct,
+        )
+
+    def update_credentials(
+        self, new_user, new_pass_raw, new_pass2_raw, current_pass_correct
+    ):
+        new_pass = (
+            hashlib.sha256(new_pass_raw.encode('utf-8')).hexdigest()
+            if new_pass_raw
+            else None
+        )
+        new_pass2 = (
+            hashlib.sha256(new_pass2_raw.encode('utf-8')).hexdigest()
+            if new_pass_raw
+            else None
+        )
         # Handle auth components
         if self.settings['password']:  # if password currently set,
             if new_user != self.settings['user']:  # trying to change user

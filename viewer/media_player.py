@@ -1,12 +1,27 @@
-from __future__ import unicode_literals
-
 import logging
+import re
 import subprocess
 
 import vlc
 
 from lib.device_helper import get_device_type
 from settings import settings
+
+
+def get_display_resolution():
+    """Get the current display resolution from xrandr."""
+    try:
+        result = subprocess.run(
+            ['xrandr', '--current'],
+            capture_output=True, text=True, timeout=5,
+        )
+        for line in result.stdout.splitlines():
+            match = re.search(r'(\d+)x(\d+)\+0\+0', line)
+            if match:
+                return int(match.group(1)), int(match.group(2))
+    except Exception as e:
+        logging.warning('Could not detect display resolution: %s', e)
+    return 1920, 1080
 
 VIDEO_TIMEOUT = 20  # secs
 
@@ -37,8 +52,17 @@ class FFMPEGMediaPlayer(MediaPlayer):
         self.uri = uri
 
     def play(self):
+        width, height = get_display_resolution()
         self.process = subprocess.Popen(
-            ['ffplay', '-autoexit', self.uri],
+            [
+                'ffplay',
+                '-autoexit',
+                '-fs',
+                '-alwaysontop',
+                '-x', str(width),
+                '-y', str(height),
+                self.uri,
+            ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
@@ -82,8 +106,16 @@ class VLCMediaPlayer(MediaPlayer):
                 return 'default:CARD=HID'
 
     def __get_options(self):
+        width, height = get_display_resolution()
         return [
             f'--alsa-audio-device={self.get_alsa_audio_device()}',
+            '--fullscreen',
+            '--no-video-deco',
+            '--no-embedded-video',
+            '--no-video-title-show',
+            '--vout=x11',
+            f'--width={width}',
+            f'--height={height}',
         ]
 
     def set_asset(self, uri, duration):

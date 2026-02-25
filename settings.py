@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import configparser
 import hashlib
 import json
 import logging
-from builtins import object, str
 from collections import UserDict
 from os import getenv, path
 from time import sleep
@@ -102,7 +99,7 @@ class AnthiasSettings(UserDict):
                     and len(self[field]) != 64
                 ):
                     # Hash the original password.
-                    self[field] = hashlib.sha256(self[field]).hexdigest()
+                    self[field] = hashlib.sha256(self[field].encode('utf-8')).hexdigest()
         except configparser.Error as e:
             logging.debug(
                 "Could not parse setting '%s.%s': %s. "

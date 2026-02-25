@@ -22,10 +22,10 @@ from celery_tasks import reboot_anthias, shutdown_anthias
 from lib import backup_helper, diagnostics
 from lib.auth import authorized
 from lib.github import is_up_to_date
-from lib.utils import connect_to_redis
+from lib.utils import LazyRedis
 from settings import ZmqPublisher, settings
 
-r = connect_to_redis()
+r = LazyRedis()
 
 
 class DeleteAssetViewMixin:

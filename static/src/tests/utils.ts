@@ -90,6 +90,7 @@ export function getInitialState(): RootState {
           skip_asset_check: false,
           is_active: true,
           is_processing: false,
+          days_of_week: '0,1,2,3,4,5,6',
         },
         {
           asset_id: '5bbf68491a0d4461bfe860911265b8be',
@@ -105,6 +106,7 @@ export function getInitialState(): RootState {
           skip_asset_check: false,
           is_active: true,
           is_processing: false,
+          days_of_week: '0,1,2,3,4,5,6',
         },
         {
           asset_id: '6eb86ce9d5c14597ae68017d4dd93900',
@@ -120,6 +122,7 @@ export function getInitialState(): RootState {
           skip_asset_check: false,
           is_active: true,
           is_processing: false,
+          days_of_week: '0,1,2,3,4,5,6',
         },
       ],
       status: 'succeeded',

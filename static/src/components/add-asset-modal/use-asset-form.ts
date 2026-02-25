@@ -84,6 +84,7 @@ export const useAssetForm = (
         play_order: 0,
         skip_asset_check: formData.skipAssetCheck ? 1 : 0,
         duration,
+        days_of_week: '0,1,2,3,4,5,6',
         ...dates,
       }
 

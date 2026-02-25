@@ -1,4 +1,3 @@
-from builtins import bytes
 from threading import Thread
 
 import zmq

@@ -5,13 +5,13 @@
 
 set -euo pipefail
 
-BRANCH="master"
+BRANCH="fix/code-review-improvements"
 ANSIBLE_PLAYBOOK_ARGS=()
-REPOSITORY="https://github.com/Screenly/Anthias.git"
+REPOSITORY="https://github.com/crackley/Anthias.git"
 ANTHIAS_REPO_DIR="/home/${USER}/screenly"
-GITHUB_API_REPO_URL="https://api.github.com/repos/Screenly/Anthias"
-GITHUB_RELEASES_URL="https://github.com/Screenly/Anthias/releases"
-GITHUB_RAW_URL="https://raw.githubusercontent.com/Screenly/Anthias"
+GITHUB_API_REPO_URL="https://api.github.com/repos/crackley/Anthias"
+GITHUB_RELEASES_URL="https://github.com/crackley/Anthias/releases"
+GITHUB_RAW_URL="https://raw.githubusercontent.com/crackley/Anthias"
 DOCKER_TAG="latest"
 UPGRADE_SCRIPT_PATH="${ANTHIAS_REPO_DIR}/bin/upgrade_containers.sh"
 ARCHITECTURE=$(uname -m)
@@ -228,7 +228,7 @@ function upgrade_docker_containers() {
     display_section "Initialize/Upgrade Docker Containers"
 
     wget -q \
-        "$GITHUB_RAW_URL/master/bin/upgrade_containers.sh" \
+        "$GITHUB_RAW_URL/$BRANCH/bin/upgrade_containers.sh" \
         -O "$UPGRADE_SCRIPT_PATH"
 
     sudo -u ${USER} \
@@ -377,7 +377,7 @@ function main() {
     )
 
     if [ "$VERSION" == "latest" ]; then
-        BRANCH="master"
+        BRANCH="fix/code-review-improvements"
     else
         set_custom_version
     fi

@@ -25,6 +25,7 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.server
+    mem_limit: ${SERVER_MEMORY_LIMIT_KB:-262144}k
     environment:
       - MY_IP=${MY_IP}
       - MAC_ADDRESS=${MAC_ADDRESS}
@@ -33,6 +34,8 @@ services:
       - LISTEN=0.0.0.0
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - GITHUB_REPO=${GITHUB_REPO:-Screenly/Anthias}
+      - GIT_BRANCH=${GIT_BRANCH:-master}
     devices:
       - "/dev/vchiq:/dev/vchiq"
     restart: always
@@ -69,6 +72,10 @@ services:
       - /home/${USER}/.asoundrc:/data/.asoundrc
       - /home/${USER}/.screenly:/data/.screenly
       - /home/${USER}/screenly_assets:/data/screenly_assets
+      - /home/${USER}/screenly/viewer:/usr/src/app/viewer:ro
+      - /home/${USER}/screenly/lib:/usr/src/app/lib:ro
+      - /home/${USER}/screenly/settings.py:/usr/src/app/settings.py:ro
+      - /home/${USER}/screenly/anthias_app:/usr/src/app/anthias_app:ro
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     labels:
@@ -97,6 +104,13 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile.celery
+    mem_limit: ${CELERY_MEMORY_LIMIT_KB:-262144}k
+    command: >
+      celery -A celery_tasks.celery worker
+      -B -n worker@anthias
+      --concurrency=${CELERY_CONCURRENCY:-2}
+      --loglevel=info
+      --schedule /tmp/celerybeat-schedule
     depends_on:
       - anthias-server
       - redis

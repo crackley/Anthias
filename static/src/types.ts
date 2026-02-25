@@ -16,6 +16,7 @@ export interface Asset {
   is_active: boolean
   play_order: number
   is_processing: boolean
+  days_of_week: string
 }
 
 export interface AssetEditData {
@@ -30,6 +31,7 @@ export interface AssetEditData {
   nocache: boolean
   skip_asset_check: boolean
   play_order?: number
+  days_of_week: string
 }
 
 export interface EditFormData {
@@ -40,6 +42,7 @@ export interface EditFormData {
   mimetype: string
   nocache: boolean
   skip_asset_check: boolean
+  days_of_week: string
 }
 
 export interface HandleSubmitParams {
@@ -150,6 +153,7 @@ export interface AssetRowProps {
   nocache: boolean
   skipAssetCheck: boolean
   isProcessing?: number
+  daysOfWeek: string
   style?: React.CSSProperties
   showDragHandle?: boolean
   dragHandleProps?: React.HTMLAttributes<HTMLElement>
@@ -213,6 +217,7 @@ export interface SaveAssetParams {
     skip_asset_check: number
     start_date: string
     uri: string
+    days_of_week: string
   }
 }
 

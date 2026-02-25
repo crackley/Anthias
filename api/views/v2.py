@@ -1,4 +1,3 @@
-import hashlib
 import ipaddress
 import logging
 from datetime import timedelta
@@ -43,14 +42,14 @@ from lib import device_helper, diagnostics
 from lib.auth import authorized
 from lib.github import is_up_to_date
 from lib.utils import (
-    connect_to_redis,
+    LazyRedis,
     get_node_ip,
     get_node_mac_address,
     is_balena_app,
 )
 from settings import ZmqPublisher, settings
 
-r = connect_to_redis()
+r = LazyRedis()
 
 
 class AssetListViewV2(APIView):
@@ -227,52 +226,16 @@ class DeviceSettingsViewV2(APIView):
         )
 
     def update_auth_settings(self, data, auth_backend, current_pass_correct):
-        if auth_backend == '':
+        if auth_backend == '' or auth_backend != 'auth_basic':
             return
 
-        if auth_backend != 'auth_basic':
-            return
-
-        new_user = data.get('username', '')
-        new_pass = data.get('password', '').encode('utf-8')
-        new_pass2 = data.get('password_2', '').encode('utf-8')
-        new_pass = hashlib.sha256(new_pass).hexdigest() if new_pass else None
-        new_pass2 = hashlib.sha256(new_pass2).hexdigest() if new_pass else None
-
-        if settings['password']:
-            if new_user != settings['user']:
-                if current_pass_correct is None:
-                    raise ValueError(
-                        'Must supply current password to change username'
-                    )
-                if not current_pass_correct:
-                    raise ValueError('Incorrect current password.')
-
-                settings['user'] = new_user
-
-            if new_pass:
-                if current_pass_correct is None:
-                    raise ValueError(
-                        'Must supply current password to change password'
-                    )
-                if not current_pass_correct:
-                    raise ValueError('Incorrect current password.')
-
-                if new_pass2 != new_pass:
-                    raise ValueError('New passwords do not match!')
-
-                settings['password'] = new_pass
-
-        else:
-            if new_user:
-                if new_pass and new_pass != new_pass2:
-                    raise ValueError('New passwords do not match!')
-                if not new_pass:
-                    raise ValueError('Must provide password')
-                settings['user'] = new_user
-                settings['password'] = new_pass
-            else:
-                raise ValueError('Must provide username')
+        backend = settings.auth_backends[auth_backend]
+        backend.update_credentials(
+            new_user=data.get('username', ''),
+            new_pass_raw=data.get('password', ''),
+            new_pass2_raw=data.get('password_2', ''),
+            current_pass_correct=current_pass_correct,
+        )
 
     @extend_schema(
         summary='Update device settings',

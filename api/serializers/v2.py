@@ -39,6 +39,7 @@ class AssetSerializerV2(ModelSerializer, CreateAssetSerializerMixin):
             'skip_asset_check',
             'is_active',
             'is_processing',
+            'days_of_week',
         ]
 
 
@@ -60,6 +61,7 @@ class CreateAssetSerializerV2(Serializer, CreateAssetSerializerMixin):
     nocache = BooleanField(required=False)
     play_order = IntegerField(required=False)
     skip_asset_check = BooleanField(required=False)
+    days_of_week = CharField(required=False, default='0,1,2,3,4,5,6')
 
     def validate(self, data):
         return self.prepare_asset(data, version='v2')
@@ -71,6 +73,7 @@ class UpdateAssetSerializerV2(UpdateAssetSerializer):
     nocache = BooleanField(required=False)
     skip_asset_check = BooleanField(required=False)
     duration = IntegerField()
+    days_of_week = CharField(required=False)
 
 
 class DeviceSettingsSerializerV2(Serializer):

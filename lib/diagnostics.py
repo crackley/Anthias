@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
-from __future__ import absolute_import, unicode_literals
-
 import os
-from builtins import str
-from datetime import datetime
+from datetime import datetime, timezone
 
 import cec
 
@@ -84,7 +81,7 @@ def try_connectivity():
 
 
 def get_utc_isodate():
-    return datetime.isoformat(datetime.utcnow())
+    return datetime.now(timezone.utc).isoformat()
 
 
 def get_debian_version():
